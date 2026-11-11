@@ -1,0 +1,47 @@
+name: Build Jungle Defense
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Check and build Windows game
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar o codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pygame pyinstaller
+
+      - name: Verificar sintaxe do jogo.py
+        run: python -m py_compile jogo.py
+
+      - name: Gerar executavel Windows
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name JungleDefense jogo.py
+
+      - name: Publicar executavel como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: JungleDefense-Windows
+          path: dist/JungleDefense.exe
+          if-no-files-found: error
+          retention-days: 14
